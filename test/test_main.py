@@ -1,75 +1,87 @@
-from stoa.sensors import Sensor, SensorFactory
+from stoa.sensors import Sensor
 from stoa.constants import sensorDef
-from stoa.actions import Action, ActionGroup
-from stoa.observers import Logic, Observer
-from stoa.triggers import Trigger
+from stoa.controller import LogicController
+
 
 if __name__ == "__main__":
+    control = LogicController()
 
     s1 = Sensor(1, sensorDef.SENSOR_BINARY_SENSOR, "door")
     s2 = Sensor(2, sensorDef.SENSOR_BINARY_SWITCH, "lamp 1")
     s3 = Sensor(3, sensorDef.SENSOR_MOTION, "motion")
     s4 = Sensor(4, sensorDef.SENSOR_MULTILEVEL_SWITCH, "lamp 2")
-    s5 = Sensor(5, sensorDef.SENSOR_TEMPERATURE, "temp")
+    s5 = Sensor(5, sensorDef.SENSOR_TEMPERATURE, "temperature")
     s6 = Sensor(6, sensorDef.SENSOR_MULTILEVEL_SWITCH, "lamp 3")
+    s7 = Sensor(7, sensorDef.SENSOR_THERMOSTAT, "thermostat")
+    points_7 = [
+        {"point_id": "3", "point_type": "9", "point_value": None},
+        {"point_id": "4", "point_type": "12", "point_value": None},
+        {"point_id": "6", "point_type": "10", "point_value": None},
+        {"point_id": "1", "point_type": "8", "point_value": "16777241"}
+    ]
+    s7.load_point_list(points_7)
 
-    sf = SensorFactory()
-    sf.add_sensor(s1)
-    sf.add_sensor(s2)
-    sf.add_sensor(s3)
-    sf.add_sensor(s4)
-    sf.add_sensor(s5)
-    sf.add_sensor(s6)
+    control.add_sensor(s1)
+    control.add_sensor(s2)
+    control.add_sensor(s3)
+    control.add_sensor(s4)
+    control.add_sensor(s5)
+    control.add_sensor(s6)
+    control.add_sensor(s7)
 
-    t1 = Trigger(1, s1)
-    t2 = Trigger(1, s3)
+    rule_data = {
+        "sensor": 1,
+        "trigger": {"method": "match", "target": 1},
+        "action": {"method": "default", "value": 1, "sensor": 2},
+        "observer": {
+            "left": {"method": "=wd=", "threshold": None, "sensor": 0},
+            "logic": "and",
+            "right": {"method": "=g=", "threshold": 20, "sensor": 5}
+        }
+    }
+    control.add_rule(rule_data)
 
-    tl = list()
-    tl.append(t1)
-    tl.append(t2)
+    rule_data = {
+        "sensor": 3,
+        "trigger": {"method": "match", "target": 1},
+        "action": [
+            {"method": "default", "value": 50, "sensor": 4},
+            {"method": "default", "value": 50, "sensor": 6}
+        ],
+        "observer": {"method": "=wd=", "threshold": None, "sensor": 0}
+    }
+    control.add_rule(rule_data)
 
-    a1 = Action(1, 2)
-    a2 = Action(50, 4)
-    a3 = Action(61, 6)
-    ag1 = ActionGroup(a2, a3)
+    rule_data = {
+        "sensor": 5,
+        "trigger": {"method": "rise", "target": 26},
+        "action": [
+            {"method": "default", "value": 1, "sensor": 7},
+            {"method": "default", "value": 20, "sensor": 7,  "point": 3}
+        ],
+        "observer": {
+            "left": {"method": "=wd=", "threshold": None, "sensor": 0},
+            "logic": "and",
+            "right": {
+                "left": {"method": "=ta=", "threshold": 1460289600, "sensor": 0},
+                "logic": "and",
+                "right": {"method": "=tb=", "threshold": 1460325600, "sensor": 0}
+            }
+        }
+    }
+    control.add_rule(rule_data)
 
-    t1.assign(a1)
-    t2.assign(ag1)
+    print(control)
 
-    o1 = Observer("=wd=", None, sf.get_sensor(0))
-    o2 = Observer("=g=", 26, sf.get_sensor(5))
-    o3 = Observer("=we=", None, sf.get_sensor(0))
-    l1 = Logic(o2, "and", o3)
-
-    a1.add_observer(o1)
-    ag1.add_observer(l1)
-
-    print(t1)
-    print(t2)
-    print()
-
+    s5.update_value(28)
     s1.update_value(0)
     s3.update_value(0)
-    print(sf)
-    for t in tl:
-        t.check()
-
+    s5.update_value(26)
     s1.update_value(1)
     s3.update_value(1)
     s5.update_value(27)
-    print(sf)
-    for t in tl:
-        t.check()
-
-    s1.update_value(0)
     s3.update_value(0)
-    print(sf)
-    for t in tl:
-        t.check()
-
-    s1.update_value(1)
+    s1.update_value(0)
     s3.update_value(1)
-    s5.update_value(27)
-    print(sf)
-    for t in tl:
-        t.check()
+    s5.update_value(28)
+    s1.update_value(1)

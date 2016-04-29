@@ -47,7 +47,7 @@ class ActionOre(object):
         if self._executed:
             return False
 
-        if self._observer is not None and self._observer.check():
+        if self._observer is None or self._observer.check():
             self._action()
             self._update()
             return True
@@ -58,13 +58,13 @@ class ActionOre(object):
 
 
 class Action(ActionOre):
-    def __init__(self, value, sensor, point=None, delay=0, tmo=None):
+    def __init__(self, value, sensor, point=None, delay=None, tmo=None):
         super(Action, self).__init__()
 
         self.value = value
         self.sensor_id = sensor
         self.point_id = point
-        self.delay = delay
+        self.delay = delay if delay else 0
         self.tmo = tmo
 
     def _action(self):
@@ -113,3 +113,8 @@ class ActionGroup(ActionOre):
         if self._observer:
             res += ", if ( {0} )".format(self._observer)
         return res
+
+
+action_table = {
+    "default": Action
+}
