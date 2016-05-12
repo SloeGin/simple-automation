@@ -65,6 +65,8 @@ class LogicController(object):
         self._cur_trigger = sensor.get_last_trigger()
 
     def add_action(self, actions):
+        if self._cur_trigger is None:
+            print("No trigger on top")
         if isinstance(actions, list):
             action = ActionGroup()
             for item in actions:
