@@ -2,6 +2,10 @@ from stoa.sensors import Sensor
 
 
 class Trigger(object):
+    @staticmethod
+    def type():
+        return "match"
+
     def __init__(self, target, point=None):
         self.target = target
         self.prev = None
@@ -52,6 +56,10 @@ class Trigger(object):
 
 
 class RisingEdge(Trigger):
+    @staticmethod
+    def type():
+        return "rise"
+
     def logic(self):
         return self.value > self.target >= self.prev
 
@@ -60,6 +68,10 @@ class RisingEdge(Trigger):
 
 
 class FallingEdge(Trigger):
+    @staticmethod
+    def type():
+        return "fall"
+
     def logic(self):
         return self.value < self.target <= self.prev
 

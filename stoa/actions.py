@@ -1,6 +1,7 @@
 import time
 
 from stoa.observers import Node
+#from stoa.dbus_sender import DBusSender
 
 
 ActionRefreshTime = {
@@ -13,7 +14,7 @@ class ActionOre(object):
     def type():
         return "default"
 
-    def __init__(self):
+    def __init__(self, *args):
         self._enabled = True
         self._last_execute_time = 0
         self._executed = False
@@ -27,7 +28,11 @@ class ActionOre(object):
 
     def _refresh(self):
         cur_time = time.time()
-        if cur_time - self._last_execute_time > ActionRefreshTime[self.type()]:
+        if self.type() in ActionRefreshTime:
+            type = self.type()
+        else:
+            type = "default"
+        if cur_time - self._last_execute_time > ActionRefreshTime[type]:
             self._executed = False
 
     def _update(self):
@@ -86,6 +91,28 @@ class Action(ActionOre):
         return self.__str__()
 
 
+class Notification(ActionOre):
+    @staticmethod
+    def type():
+        return "notify"
+
+    def __init__(self, trigger):
+        self.trigger = trigger
+        super(Notification, self).__init__()
+
+    def _action(self):
+        print("Notification: Sensor_{0} {1} {2}".format(
+                                                 self.trigger.sensor.sensor_id,
+                                                 self.trigger.type(),
+                                                 self.trigger.target))
+
+    def __str__(self):
+        return "Notify"
+
+    def __repr__(self):
+        return self.__str__()
+
+
 class ActionGroup(ActionOre):
     def __init__(self, *args):
         super(ActionGroup, self).__init__()
@@ -95,7 +122,7 @@ class ActionGroup(ActionOre):
             self._list.append(arg)
 
     def add_action(self, action):
-        if not isinstance(action, Action):
+        if not isinstance(action, ActionOre):
             raise ValueError("Need a action object")
 
         self._list.append(action)
@@ -116,5 +143,6 @@ class ActionGroup(ActionOre):
 
 
 action_table = {
-    "default": Action
+    "default": Action,
+    "notify": Notification
 }

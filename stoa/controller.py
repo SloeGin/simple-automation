@@ -1,5 +1,5 @@
-from stoa.actions import action_table, ActionGroup
-from stoa.observers import Logic, Observer
+from stoa.actions import action_table, ActionGroup, ActionOre
+from stoa.observers import Logic, Observer, Node
 from stoa.triggers import trigger_table
 from stoa.sensors import Sensor, Clock
 from copy import deepcopy as copy
@@ -67,6 +67,12 @@ class LogicController(object):
     def add_action(self, actions):
         if self._cur_trigger is None:
             print("No trigger on top")
+
+        if isinstance(actions, ActionOre):
+            self._cur_trigger(actions)
+            self._cur_action = self._cur_trigger.get_action()
+            return
+
         if isinstance(actions, list):
             action = ActionGroup()
             for item in actions:
@@ -77,16 +83,21 @@ class LogicController(object):
         self._cur_trigger.assign(copy(action))
         self._cur_action = self._cur_trigger.get_action()
 
-    @staticmethod
-    def _load_action(action):
+    def _load_action(self, action):
         # add action from json to the current trigger
-        value = load_value(action, "value")
-        sensor = load_value(action, "sensor")
-        point = load_value(action, "point")
-        delay = load_value(action, "delay")
-        tmo = load_value(action, "tmo")
+        if action["method"] == "default":
+            value = load_value(action, "value")
+            sensor = load_value(action, "sensor")
+            point = load_value(action, "point")
+            delay = load_value(action, "delay")
+            tmo = load_value(action, "tmo")
 
-        return action_table[action["method"]](value, sensor, point, delay, tmo)
+            return action_table["default"](value, sensor, point, delay, tmo)
+
+        if action["method"] == "notify":
+            trigger = self._cur_trigger
+
+            return action_table["notify"](trigger)
 
     def add_done(self):
         self._cur_trigger = None
@@ -122,6 +133,10 @@ class LogicController(object):
             return None
 
     def add_observer(self, observer):
+        if isinstance(observer, Node):
+            self._cur_action.add_observer(observer)
+            return
+
         o = self._load_ob(observer)
         if o:
             self._cur_action.add_observer(o)

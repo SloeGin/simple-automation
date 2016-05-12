@@ -19,7 +19,7 @@ SENSOR_PANIC = 17
 SENSOR_THERMOSTAT = 18
 
 controllable_sensor = [
-    7,
-    15,
-    18
+    SENSOR_BINARY_SWITCH,
+    SENSOR_MULTILEVEL_SWITCH,
+    SENSOR_THERMOSTAT
 ]

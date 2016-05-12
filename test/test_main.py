@@ -46,7 +46,8 @@ if __name__ == "__main__":
         "trigger": {"method": "match", "target": 1},
         "action": [
             {"method": "default", "value": 50, "sensor": 4},
-            {"method": "default", "value": 50, "sensor": 6}
+            {"method": "default", "value": 50, "sensor": 6},
+            {"method": "notify"}
         ],
         "observer": {"method": "=wd=", "threshold": None, "sensor": 0}
     }
