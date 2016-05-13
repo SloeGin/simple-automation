@@ -1,4 +1,5 @@
 from stoa.sensors import Sensor
+from datetime import datetime
 
 
 class Trigger(object):
@@ -85,8 +86,34 @@ class FallingEdge(Trigger):
         return "When sensor {0} falls below {1}, {2}".format(self.sensor.sensor_id, self.target, self.action)
 
 
+class TimeReach(Trigger):
+    @staticmethod
+    def type():
+        return "time"
+
+    def logic(self):
+        now = datetime.fromtimestamp(self.value)
+        target = datetime.fromtimestamp(self.target)
+        prev = datetime.fromtimestamp(self.prev)
+
+        hour = target.hour
+        minute = target.minute
+        second = target.second
+
+        target = now.replace(hour=hour, minute=minute, second=second)
+
+        if now >= target > prev:
+            return True
+        else:
+            return False
+
+    def __str__(self):
+        return "When time pass {0}, {1}".format(self.target, self.action)
+
+
 trigger_table = {
     "match": Trigger,
     "rise": RisingEdge,
-    "fall": FallingEdge
+    "fall": FallingEdge,
+    "time": TimeReach
 }
