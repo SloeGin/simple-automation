@@ -22,6 +22,12 @@ class LogicController(object):
     def __iter__(self):
         return iter(self._dict)
 
+    def __str__(self):
+        res = "<Controller>\n"
+        for i in (self.get_sensor(x) for x in self):
+            res += str(i)
+        return res
+
     def add_sensor(self, sensor):
         if isinstance(sensor, Sensor):
             if sensor.sensor_id == 0:
@@ -45,11 +51,15 @@ class LogicController(object):
 
         return True
 
-    def __str__(self):
-        res = "<Controller>\n"
-        for i in (self.get_sensor(x) for x in self):
-            res += str(i)
-        return res
+    def remove_sensor(self, sensor_id):
+        try:
+            if sensor_id == 0:
+                raise ValueError("Fatal error: cannot overwrite system clock")
+            if sensor_id not in self._dict:
+                raise KeyError("Sensor ID not exists!")
+            self._dict.pop(sensor_id)
+        except Exception as e:
+            print(e)
 
     def get_sensor(self, sensor_id):
         if int(sensor_id) not in self._dict:
@@ -73,7 +83,7 @@ class LogicController(object):
         self._cur_trigger = sensor.get_trigger(index)
         return index
 
-    def remove_trigger(self, sensor_id, index):
+    def remove_rule(self, sensor_id, index):
         sensor = self._dict[sensor_id]
         sensor.remove_trigger(index)
 

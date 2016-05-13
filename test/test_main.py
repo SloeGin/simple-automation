@@ -46,7 +46,13 @@ if __name__ == "__main__":
     rule_data = {
         "sensor": 1,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 8}
+        "action": {"method": "default", "value": 255, "sensor": 4}
+    }
+    control.add_rule(rule_data)
+
+    rule_data = {
+        "sensor": 1,
+        "trigger": {"method": "match", "target": 1}
     }
     control.add_rule(rule_data)
 
@@ -110,16 +116,17 @@ if __name__ == "__main__":
     s5.update_value(28)
     s1.update_value(1)
 
-    control.remove_trigger(3, 0)
+    control.remove_rule(3, 0)
 
     print(control)
     control.dump_rules()
 
     rule_data = control.dump_rule(1)
 
-    control.remove_trigger(1, 0)
-    control.remove_trigger(1, 0)
+    control.remove_rule(1, 0)
+    control.remove_rule(1, 0)
 
     control.add_rule(rule_data)
+    control.remove_sensor(8)
 
     print(control)
