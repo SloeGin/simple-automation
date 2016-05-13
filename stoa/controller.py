@@ -172,3 +172,7 @@ class LogicController(object):
     def dump_rule(self, sensor_id):
         sensor = self.get_sensor(sensor_id)
         return sensor.to_dict()
+
+    def handle_data(self, sensor_id, value, point=None):
+        sensor = self._dict[sensor_id]
+        sensor.update_value(value, point)
