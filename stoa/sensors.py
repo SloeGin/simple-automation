@@ -17,8 +17,14 @@ class Sensor(object):
         self.sensor_id = sensor_id
         self._triggers = list()
 
-    def is_controllable(self):
-        return self.type in sensorDef.controllable_sensor
+    def is_actable(self):
+        return self.type in sensorDef.automatable_sensor_types
+
+    def is_triggerable(self):
+        if self.type == 0:
+            return True
+        else:
+            return self.type in sensorDef.triggerable_sensor_types
 
     def load_point_list(self, points):
         for point in points:
@@ -90,9 +96,12 @@ class Sensor(object):
 
     def remove_trigger(self, index):
         try:
-            self._triggers.pop(index)
-        except:
-            print("Index out of range")
+            if index is None:
+                self._triggers.pop()
+            else:
+                self._triggers.pop(index)
+        except Exception as e:
+            print("{0}".format(e))
 
     def __str__(self):
         res = "Sensor: id = {id}\n\tname = {name}\n\tvalue = {value}".format(

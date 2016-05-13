@@ -49,6 +49,13 @@ class Trigger(object):
     def get_action(self):
         return self.action
 
+    def is_validated(self):
+        if not self.sensor.is_triggerable():
+            return False
+        if not self.action:
+            return False
+        return True
+
     def to_dict(self):
         res = dict()
         res["method"] = self.type()

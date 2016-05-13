@@ -18,8 +18,18 @@ SENSOR_ORIENTATION = 16
 SENSOR_PANIC = 17
 SENSOR_THERMOSTAT = 18
 
-controllable_sensor = [
+# Sensors appear in rule page as trigger
+triggerable_sensor_types = (
+    SENSOR_BINARY_SENSOR,
+    #SENSOR_MOTION,
+    SENSOR_AMBIENT_LIGHT,
+    SENSOR_LOUD_SOUND,
+    SENSOR_TEMPERATURE,
+    SENSOR_TIME
+)
+# Sensors appear in automation page
+automatable_sensor_types = (
     SENSOR_BINARY_SWITCH,
     SENSOR_MULTILEVEL_SWITCH,
     SENSOR_THERMOSTAT
-]
+)

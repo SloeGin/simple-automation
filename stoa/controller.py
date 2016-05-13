@@ -66,6 +66,8 @@ class LogicController(object):
         if trigger is None:
             raise ValueError("No trigger in rule!")
         sensor = self._dict[sensor_id]
+        if not sensor.is_triggerable():
+            raise ValueError("Sensor {0} is not triggerable!".format(sensor_id))
         t = trigger_table[trigger["method"]](trigger["target"])
         index = sensor.add_trigger(copy(t))
         self._cur_trigger = sensor.get_trigger(index)
@@ -106,6 +108,9 @@ class LogicController(object):
             delay = load_value(action, "delay")
             tmo = load_value(action, "tmo")
 
+            if not self._dict[sensor].is_actable():
+                raise ValueError("Sensor {0} is not actable!".format(sensor))
+
             return action_table["default"](value, sensor, point, delay, tmo)
 
         if action["method"] == "notify":
@@ -114,24 +119,32 @@ class LogicController(object):
             return action_table["notify"](trigger)
 
     def add_done(self):
+        if self._cur_trigger and not self._cur_trigger.is_validated():
+            self._cur_trigger.sensor.remove_trigger(None)
         self._cur_trigger = None
         self._cur_action = None
 
     def add_rule(self, rule):
-        if isinstance(rule, list):
-            for item in rule:
-                self._add_rule(item)
-        else:
-            self._add_rule(rule)
+        try:
+            if isinstance(rule, list):
+                for item in rule:
+                    self._add_rule(item)
+            else:
+                self._add_rule(rule)
+        except Exception as e:
+            print("Failed adding rule: {0}".format(e))
 
     def _add_rule(self, rule):
         sensor = load_value(rule, "sensor")
         trigger = load_value(rule, "trigger")
         action = load_value(rule, "action")
         observer = load_value(rule, "observer")
-        self.add_trigger(sensor, trigger)
-        self.add_action(action)
-        self.add_observer(observer)
+        try:
+            self.add_trigger(sensor, trigger)
+            self.add_action(action)
+            self.add_observer(observer)
+        except Exception as e:
+            print("Failed adding rule: {0}".format(e))
         self.add_done()
 
     def _load_ob(self, observer):

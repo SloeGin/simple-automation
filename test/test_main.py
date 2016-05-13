@@ -44,7 +44,7 @@ if __name__ == "__main__":
     rule_data = {
         "sensor": 1,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 4}
+        "action": {"method": "default", "value": 255, "sensor": 3}
     }
     control.add_rule(rule_data)
 
