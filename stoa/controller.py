@@ -2,7 +2,7 @@ from stoa.actions import action_table, ActionGroup, ActionOre
 from stoa.observers import Logic, Observer, Node
 from stoa.triggers import trigger_table
 from stoa.sensors import Sensor, Clock
-from copy import deepcopy as copy
+from copy import deepcopy
 
 
 def load_value(x, y):
@@ -69,7 +69,7 @@ class LogicController(object):
         if not sensor.is_triggerable():
             raise ValueError("Sensor {0} is not triggerable!".format(sensor_id))
         t = trigger_table[trigger["method"]](trigger["target"])
-        index = sensor.add_trigger(copy(t))
+        index = sensor.add_trigger(deepcopy(t))
         self._cur_trigger = sensor.get_trigger(index)
         return index
 
@@ -96,7 +96,7 @@ class LogicController(object):
         else:
             action = self._load_action(actions)
 
-        self._cur_trigger.assign(copy(action))
+        self._cur_trigger.assign(deepcopy(action))
         self._cur_action = self._cur_trigger.get_action()
 
     def _load_action(self, action):
