@@ -52,6 +52,8 @@ class LogicController(object):
         return res
 
     def get_sensor(self, sensor_id):
+        if int(sensor_id) not in self._dict:
+            raise IndexError("Sensor ID out of Range")
         return self._dict[int(sensor_id)]
 
     def update_sensor(self, value, sensor_id, point_id=None):
@@ -59,14 +61,26 @@ class LogicController(object):
 
     def add_trigger(self, sensor_id, trigger):
         # load trigger from json to controller
+        if sensor_id is None:
+            raise ValueError("Must provide sensor id!")
+        if trigger is None:
+            raise ValueError("No trigger in rule!")
         sensor = self._dict[sensor_id]
         t = trigger_table[trigger["method"]](trigger["target"])
-        sensor.add_trigger(copy(t))
-        self._cur_trigger = sensor.get_last_trigger()
+        index = sensor.add_trigger(copy(t))
+        self._cur_trigger = sensor.get_trigger(index)
+        return index
+
+    def remove_trigger(self, sensor_id, index):
+        sensor = self._dict[sensor_id]
+        sensor.remove_trigger(index)
 
     def add_action(self, actions):
         if self._cur_trigger is None:
             print("No trigger on top")
+
+        if actions is None:
+            raise ValueError("No action in rule!")
 
         if isinstance(actions, ActionOre):
             self._cur_trigger(actions)
@@ -104,6 +118,13 @@ class LogicController(object):
         self._cur_action = None
 
     def add_rule(self, rule):
+        if isinstance(rule, list):
+            for item in rule:
+                self._add_rule(item)
+        else:
+            self._add_rule(rule)
+
+    def _add_rule(self, rule):
         sensor = load_value(rule, "sensor")
         trigger = load_value(rule, "trigger")
         action = load_value(rule, "action")
@@ -140,3 +161,14 @@ class LogicController(object):
         o = self._load_ob(observer)
         if o:
             self._cur_action.add_observer(o)
+
+    def dump_rules(self):
+        for id in self._dict:
+            sensor = self.get_sensor(id)
+            if sensor.has_trigger():
+                print("sensor_{0}.json".format(sensor.sensor_id))
+                print(sensor.to_dict())
+
+    def dump_rule(self, sensor_id):
+        sensor = self.get_sensor(sensor_id)
+        return sensor.to_dict()

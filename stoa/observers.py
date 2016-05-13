@@ -13,10 +13,13 @@ class Node(object):
         self.__class__._ID += 1
 
     def __call__(self):
-        return False
+        raise NameError("Need override __call__")
 
     def check(self):
         return self.__call__()
+
+    def to_dict(self):
+        raise NameError("Need override to_dict")
 
 
 #########################
@@ -103,9 +106,9 @@ class Observer(Node):
             raise ValueError("Must have a valid sensor as input")
         super(Observer, self).__init__()
         self.rule = rule
-        self.threshold = threshold
+        self.threshold = int(threshold) if threshold else None
         self.sensor = sensor
-        self.point = point
+        self.point = int(point) if point else None
 
     def __call__(self):
         value = self.get_sensor()
@@ -124,6 +127,15 @@ class Observer(Node):
             rule=self.rule,
             threshold=self.threshold
         )
+
+    def to_dict(self):
+        res = dict()
+        res["sensor"] = self.sensor.sensor_id
+        res["method"] = self.rule
+        res["threshold"] = self.threshold
+        if self.point:
+            res["point"] = self.point
+        return res
 
 
 #######################
@@ -166,3 +178,10 @@ class Logic(Node):
 
     def __repr__(self):
         return self.__str__()
+
+    def to_dict(self):
+        res = dict()
+        res["left"] = self.left.to_dict()
+        res["logic"] = self.logic
+        res["right"] = self.right.to_dict()
+        return res

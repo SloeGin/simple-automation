@@ -29,10 +29,10 @@ class ActionOre(object):
     def _refresh(self):
         cur_time = time.time()
         if self.type() in ActionRefreshTime:
-            type = self.type()
+            action_type = self.type()
         else:
-            type = "default"
-        if cur_time - self._last_execute_time > ActionRefreshTime[type]:
+            action_type = "default"
+        if cur_time - self._last_execute_time > ActionRefreshTime[action_type]:
             self._executed = False
 
     def _update(self):
@@ -43,6 +43,12 @@ class ActionOre(object):
         if not isinstance(observer, Node):
             raise ValueError("Need to an observer or a logic")
         self._observer = observer
+
+    def observer_dict(self):
+        if self._observer:
+            return self._observer.to_dict()
+        else:
+            return None
 
     def execute(self):
         self._refresh()
@@ -61,16 +67,21 @@ class ActionOre(object):
     def _action(self):
         print("Nothing to do")
 
+    def to_dict(self):
+        res = dict()
+        res["method"] = self.type()
+        return res
+
 
 class Action(ActionOre):
     def __init__(self, value, sensor, point=None, delay=None, tmo=None):
         super(Action, self).__init__()
 
         self.value = value
-        self.sensor_id = sensor
-        self.point_id = point
-        self.delay = delay if delay else 0
-        self.tmo = tmo
+        self.sensor_id = int(sensor)
+        self.point_id = int(point) if point else None
+        self.delay = int(delay) if delay else 0
+        self.tmo = int(tmo) if tmo else None
 
     def _action(self):
         if self.point_id is None:
@@ -89,6 +100,19 @@ class Action(ActionOre):
 
     def __repr__(self):
         return self.__str__()
+
+    def to_dict(self):
+        res = dict()
+        res["method"] = self.type()
+        res["value"] = self.value
+        res["sensor"] = self.sensor_id
+        if self.point_id:
+            res["point"] = self.point_id
+        if self.delay:
+            res["delay"] = self.delay
+        if self.tmo:
+            res["tmo"] = self.tmo
+        return res
 
 
 class Notification(ActionOre):
@@ -141,6 +165,11 @@ class ActionGroup(ActionOre):
             res += ", if ( {0} )".format(self._observer)
         return res
 
+    def to_dict(self):
+        res = list()
+        for item in self._list:
+            res.append(item.to_dict())
+        return res
 
 action_table = {
     "default": Action,

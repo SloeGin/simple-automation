@@ -42,6 +42,13 @@ if __name__ == "__main__":
     control.add_rule(rule_data)
 
     rule_data = {
+        "sensor": 1,
+        "trigger": {"method": "match", "target": 1},
+        "action": {"method": "default", "value": 255, "sensor": 4}
+    }
+    control.add_rule(rule_data)
+
+    rule_data = {
         "sensor": 3,
         "trigger": {"method": "match", "target": 1},
         "action": [
@@ -61,10 +68,10 @@ if __name__ == "__main__":
             {"method": "default", "value": 20, "sensor": 7,  "point": 3}
         ],
         "observer": {
-            "left": {"method": "=wd=", "threshold": None, "sensor": 0},
+            "left": {"method": "=wd=", "threshold": None, "sensor": "0"},
             "logic": "and",
             "right": {
-                "left": {"method": "=ta=", "threshold": 1460289600, "sensor": 0},
+                "left": {"method": "=ta=", "threshold": "1460289600", "sensor": "0"},
                 "logic": "and",
                 "right": {"method": "=tb=", "threshold": 1460325600, "sensor": 0}
             }
@@ -86,3 +93,17 @@ if __name__ == "__main__":
     s3.update_value(1)
     s5.update_value(28)
     s1.update_value(1)
+
+    control.remove_trigger(3, 0)
+
+    print(control)
+    control.dump_rules()
+
+    rule_data = control.dump_rule(1)
+
+    control.remove_trigger(1, 0)
+    control.remove_trigger(1, 0)
+
+    control.add_rule(rule_data)
+
+    print(control)

@@ -14,7 +14,7 @@ class Trigger(object):
         self.action = None
         self.sensor = None
 
-    def get_sensor(self):
+    def get_sensor_update(self):
         if self.point is None:
             self.value = self.sensor.get_value()
         else:
@@ -30,7 +30,7 @@ class Trigger(object):
         if not self.action:
             return False
 
-        self.get_sensor()
+        self.get_sensor_update()
 
         if self.prev is None:
             self.update()
@@ -47,6 +47,12 @@ class Trigger(object):
 
     def get_action(self):
         return self.action
+
+    def to_dict(self):
+        res = dict()
+        res["method"] = self.type()
+        res["target"] = self.target
+        return res
 
     def logic(self):
         return self.value == self.target and self.prev != self.target

@@ -63,6 +63,7 @@ class Sensor(object):
     def add_trigger(self, trigger):
         self._triggers.append(trigger)
         trigger.attach_sensor(self)
+        return self._triggers.index(trigger)
 
     def handle_data(self):
         for trigger in self._triggers:
@@ -73,6 +74,25 @@ class Sensor(object):
             return self._triggers[-1]
         else:
             return None
+
+    def has_trigger(self):
+        if self._triggers:
+            return True
+        else:
+            return False
+
+    def get_trigger(self, index):
+        try:
+            return self._triggers[index]
+        except:
+            print("Index out of range")
+            return None
+
+    def remove_trigger(self, index):
+        try:
+            self._triggers.pop(index)
+        except:
+            print("Index out of range")
 
     def __str__(self):
         res = "Sensor: id = {id}\n\tname = {name}\n\tvalue = {value}".format(
@@ -85,11 +105,23 @@ class Sensor(object):
                 p=str(point),
                 t=str(value["point_type"])
             )
-        for trigger in self._triggers:
-            res += "\n\ttrigger: {t}".format(
-                t=str(trigger)
+        for i in range(len(self._triggers)):
+            res += "\n\ttrigger: {i} - {t}".format(
+                i=i,
+                t=str(self._triggers[i])
             )
         return res + "\n"
+
+    def to_dict(self):
+        res = list()
+        for trigger in self._triggers:
+            rule = dict()
+            rule["sensor"] = trigger.sensor.sensor_id
+            rule["trigger"] = trigger.to_dict()
+            rule["action"] = trigger.action.to_dict()
+            rule["observer"] = trigger.action.observer_dict()
+            res.append(rule)
+        return res if res else None
 
 
 class Clock(Sensor):
