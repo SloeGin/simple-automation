@@ -110,9 +110,10 @@ class Sensor(object):
             value=self.value
         )
         for point, value in self._points.items():
-            res += "\n\tpoint: {p}, type: {t}".format(
+            res += "\n\tpoint: {p}, type: {t}, value: {v}".format(
                 p=str(point),
-                t=str(value["point_type"])
+                t=str(value["point_type"]),
+                v=str(value["point_value"])
             )
         for i in range(len(self._triggers)):
             res += "\n\ttrigger: {i} - {t}".format(

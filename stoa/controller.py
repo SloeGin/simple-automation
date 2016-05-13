@@ -53,7 +53,7 @@ class LogicController(object):
 
     def get_sensor(self, sensor_id):
         if int(sensor_id) not in self._dict:
-            raise IndexError("Sensor ID out of Range")
+            raise KeyError(int(sensor_id))
         return self._dict[int(sensor_id)]
 
     def update_sensor(self, value, sensor_id, point_id=None):
@@ -140,9 +140,12 @@ class LogicController(object):
         action = load_value(rule, "action")
         observer = load_value(rule, "observer")
         try:
+            self.get_sensor(sensor)
             self.add_trigger(sensor, trigger)
             self.add_action(action)
             self.add_observer(observer)
+        except KeyError as e:
+            print("Failed adding rule: Sensor {0} not exists!".format(e))
         except Exception as e:
             print("Failed adding rule: {0}".format(e))
         self.add_done()

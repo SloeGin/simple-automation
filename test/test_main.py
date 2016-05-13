@@ -13,6 +13,7 @@ if __name__ == "__main__":
     s5 = Sensor(5, sensorDef.SENSOR_TEMPERATURE, "temperature")
     s6 = Sensor(6, sensorDef.SENSOR_MULTILEVEL_SWITCH, "lamp 3")
     s7 = Sensor(7, sensorDef.SENSOR_THERMOSTAT, "thermostat")
+    s8 = Sensor(8, sensorDef.SENSOR_UNKNOWN, "UNKOWN")
     points_7 = [
         {"point_id": "3", "point_type": "9", "point_value": None},
         {"point_id": "4", "point_type": "12", "point_value": None},
@@ -28,6 +29,7 @@ if __name__ == "__main__":
     control.add_sensor(s5)
     control.add_sensor(s6)
     control.add_sensor(s7)
+    control.add_sensor(s8)
 
     rule_data = {
         "sensor": 1,
@@ -44,7 +46,21 @@ if __name__ == "__main__":
     rule_data = {
         "sensor": 1,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 3}
+        "action": {"method": "default", "value": 255, "sensor": 8}
+    }
+    control.add_rule(rule_data)
+
+    rule_data = {
+        "sensor": 8,
+        "trigger": {"method": "match", "target": 1},
+        "action": {"method": "default", "value": 255, "sensor": 1}
+    }
+    control.add_rule(rule_data)
+
+    rule_data = {
+        "sensor": 9,
+        "trigger": {"method": "match", "target": 1},
+        "action": {"method": "default", "value": 255, "sensor": 2}
     }
     control.add_rule(rule_data)
 

@@ -21,7 +21,7 @@ SENSOR_THERMOSTAT = 18
 # Sensors appear in rule page as trigger
 triggerable_sensor_types = (
     SENSOR_BINARY_SENSOR,
-    #SENSOR_MOTION,
+    SENSOR_MOTION,
     SENSOR_AMBIENT_LIGHT,
     SENSOR_LOUD_SOUND,
     SENSOR_TEMPERATURE,
