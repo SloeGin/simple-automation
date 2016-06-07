@@ -14,11 +14,13 @@ if __name__ == "__main__":
     s6 = Sensor(6, sensorDef.SENSOR_MULTILEVEL_SWITCH, "lamp 3")
     s7 = Sensor(7, sensorDef.SENSOR_THERMOSTAT, "thermostat")
     s8 = Sensor(8, sensorDef.SENSOR_UNKNOWN, "UNKOWN")
+    s11 = Sensor(11, sensorDef.SENSOR_BINARY_SENSOR, "door_1")
+    s12 = Sensor(12, sensorDef.SENSOR_BINARY_SENSOR, "door_2")
     points_7 = [
         {"point_id": "3", "point_type": "9", "point_value": None},
         {"point_id": "4", "point_type": "12", "point_value": None},
         {"point_id": "6", "point_type": "10", "point_value": None},
-        {"point_id": "1", "point_type": "8", "point_value": "16777241"}
+        {"point_id": "1", "point_type": "8", "point_value": "25"}
     ]
     s7.load_point_list(points_7)
 
@@ -30,6 +32,8 @@ if __name__ == "__main__":
     control.add_sensor(s6)
     control.add_sensor(s7)
     control.add_sensor(s8)
+    control.add_sensor(s11)
+    control.add_sensor(s12)
 
     rule_data = {
         "sensor": 1,
@@ -45,6 +49,7 @@ if __name__ == "__main__":
 
     rule_data = {
         "sensor": 1,
+        "enabled": False,
         "trigger": {"method": "match", "target": 1},
         "action": {"method": "default", "value": 255, "sensor": 4}
     }
@@ -52,6 +57,7 @@ if __name__ == "__main__":
 
     rule_data = {
         "sensor": 1,
+        "enabled": True,
         "trigger": {"method": "match", "target": 1}
     }
     control.add_rule(rule_data)
@@ -101,6 +107,15 @@ if __name__ == "__main__":
     }
     control.add_rule(rule_data)
 
+    rule_data = {
+        "state": {
+            "left": {"sensor": 11, "target": 1},
+            "logic": "and",
+            "right": {"sensor": 12, "target": 1}
+        }
+    }
+    control.add_rule(rule_data)
+
     print(control)
 
     s5.update_value(28)
@@ -129,4 +144,8 @@ if __name__ == "__main__":
     control.add_rule(rule_data)
     control.remove_sensor(8)
 
+    control.enable_rule(1, 0)
+    control.disable_rule(1, 1)
     print(control)
+
+    print(control.dump_rules())

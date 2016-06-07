@@ -1,5 +1,5 @@
 from stoa.actions import action_table, ActionGroup, ActionOre
-from stoa.observers import Logic, Observer, Node
+from stoa.observers import Gate, Observer, ObserverOre
 from stoa.triggers import trigger_table
 from stoa.sensors import Sensor, Clock
 from copy import deepcopy
@@ -9,6 +9,7 @@ def load_value(x, y):
     return x[y] if y in x else None
 
 
+# TODO: Need a state controller for case "if Door A or Door B opens, turn light on otherwise turn in off".
 class LogicController(object):
     def __init__(self):
         self._dict = dict()
@@ -87,6 +88,14 @@ class LogicController(object):
         sensor = self._dict[sensor_id]
         sensor.remove_trigger(index)
 
+    def disable_rule(self, sensor_id, index):
+        sensor = self._dict[sensor_id]
+        sensor.disable_trigger(index)
+
+    def enable_rule(self, sensor_id, index):
+        sensor = self._dict[sensor_id]
+        sensor.enable_trigger(index)
+
     def add_action(self, actions):
         if self._cur_trigger is None:
             print("No trigger on top")
@@ -138,22 +147,40 @@ class LogicController(object):
         try:
             if isinstance(rule, list):
                 for item in rule:
-                    self._add_rule(item)
+                    if "sensor" in item:
+                        self._add_rule(item)
+                    elif "state" in item:
+                        self._add_lsm(item)
+                    else:
+                        print("Invalidate Rule")
             else:
-                self._add_rule(rule)
+                if "sensor" in rule:
+                    self._add_rule(rule)
+                elif "state" in rule:
+                    self._add_lsm(rule)
+                else:
+                    print("Invalidate Rule")
         except Exception as e:
             print("Failed adding rule: {0}".format(e))
+
+    def _add_lsm(self, rule):
+        pass
 
     def _add_rule(self, rule):
         sensor = load_value(rule, "sensor")
         trigger = load_value(rule, "trigger")
         action = load_value(rule, "action")
         observer = load_value(rule, "observer")
+        enabled = True if "enabled" not in rule else rule["enabled"]
         try:
             self.get_sensor(sensor)
             self.add_trigger(sensor, trigger)
             self.add_action(action)
             self.add_observer(observer)
+            if enabled:
+                self._cur_trigger.enable()
+            else:
+                self._cur_trigger.disable()
         except KeyError as e:
             print("Failed adding rule: Sensor {0} not exists!".format(e))
         except Exception as e:
@@ -175,12 +202,12 @@ class LogicController(object):
             logic = load_value(observer, "logic")
             right = load_value(observer, "right")
 
-            return Logic(self._load_ob(left), logic, self._load_ob(right))
+            return Gate(self._load_ob(left), logic, self._load_ob(right))
         else:
             return None
 
     def add_observer(self, observer):
-        if isinstance(observer, Node):
+        if isinstance(observer, ObserverOre):
             self._cur_action.add_observer(observer)
             return
 

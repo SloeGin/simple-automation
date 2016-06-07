@@ -1,6 +1,6 @@
 import time
 
-from stoa.observers import Node
+from stoa.observers import ObserverOre
 #from stoa.dbus_sender import DBusSender
 
 
@@ -40,8 +40,8 @@ class ActionOre(object):
         self._executed = True
 
     def add_observer(self, observer):
-        if not isinstance(observer, Node):
-            raise ValueError("Need to an observer or a logic")
+        if not isinstance(observer, ObserverOre):
+            raise ValueError("Need to an observer or a logic gate")
         self._observer = observer
 
     def observer_dict(self):

@@ -14,6 +14,7 @@ class Trigger(object):
         self.point = point
         self.action = None
         self.sensor = None
+        self.enabled = True
 
     def get_sensor_update(self):
         if self.point is None:
@@ -27,6 +28,12 @@ class Trigger(object):
     def attach_sensor(self, sensor):
         self.sensor = sensor
 
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
+
     def check(self):
         if not self.action:
             return False
@@ -36,7 +43,7 @@ class Trigger(object):
         if self.prev is None:
             self.update()
 
-        if self.logic():
+        if self.enabled and self.logic():
             self.action.execute()
 
         self.update()
@@ -118,9 +125,21 @@ class TimeReach(Trigger):
         return "When time pass {0}, {1}".format(self.target, self.action)
 
 
+class Changed(Trigger):
+    @staticmethod
+    def type():
+        return "changed"
+
+    def logic(self):
+        return self.value != self.prev
+
+    def __str__(self):
+        return "When sensor {0} changes, {1}".format(self.sensor.sensor_id, self.action)
+
 trigger_table = {
     "match": Trigger,
     "rise": RisingEdge,
     "fall": FallingEdge,
-    "time": TimeReach
+    "time": TimeReach,
+    "change": Changed
 }

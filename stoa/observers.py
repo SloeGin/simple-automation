@@ -5,7 +5,7 @@ from stoa.sensors import Sensor
 #########################
 # Node object
 #########################
-class Node(object):
+class ObserverOre(object):
     _ID = 0
 
     def __init__(self):
@@ -100,7 +100,7 @@ Condition = {
 }
 
 
-class Observer(Node):
+class Observer(ObserverOre):
     def __init__(self, rule, threshold, sensor, point=None):
         if not isinstance(sensor, Sensor):
             raise ValueError("Must have a valid sensor as input")
@@ -148,9 +148,9 @@ Logic_table = {
 }
 
 
-class Logic(Node):
+class Gate(ObserverOre):
     def __init__(self, left, logic, right):
-        super(Logic, self).__init__()
+        super(Gate, self).__init__()
         self.left = left
         self.right = right
         self.logic = logic

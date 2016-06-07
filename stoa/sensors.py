@@ -47,15 +47,17 @@ class Sensor(object):
         if not init:
             self.handle_data()
 
-    def disable(self):
-        self._enabled = False
+    def disable_trigger(self, index):
+        self._triggers[index].disable()
 
-    def enable(self):
-        self._enabled = True
+    def enable_trigger(self, index):
+        self._triggers[index].enable()
 
     def get_value(self):
         if self._enabled:
             return self.value
+        else:
+            return None
 
     def get_point(self, point):
         if point in self._points and self._enabled:
@@ -127,6 +129,7 @@ class Sensor(object):
         for trigger in self._triggers:
             rule = dict()
             rule["sensor"] = trigger.sensor.sensor_id
+            rule["enabled"] = trigger.enabled
             rule["trigger"] = trigger.to_dict()
             rule["action"] = trigger.action.to_dict()
             rule["observer"] = trigger.action.observer_dict()
