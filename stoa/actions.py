@@ -1,7 +1,5 @@
 import time
-
-from stoa.observers import ObserverOre
-#from stoa.dbus_sender import DBusSender
+from .condition import ConditionOre
 
 
 ActionRefreshTime = {
@@ -18,7 +16,7 @@ class ActionOre(object):
         self._enabled = True
         self._last_execute_time = 0
         self._executed = False
-        self._observer = None
+        self._condition = None
 
     def enable(self):
         self._enabled = True
@@ -39,14 +37,14 @@ class ActionOre(object):
         self._last_execute_time = time.time()
         self._executed = True
 
-    def add_observer(self, observer):
-        if not isinstance(observer, ObserverOre):
-            raise ValueError("Need to an observer or a logic gate")
-        self._observer = observer
+    def add_condition(self, condition):
+        if not isinstance(condition, ConditionOre):
+            raise ValueError("Need to an condition or a logic gate")
+        self._condition = condition
 
-    def observer_dict(self):
-        if self._observer:
-            return self._observer.to_dict()
+    def condition_dict(self):
+        if self._condition:
+            return self._condition.to_dict()
         else:
             return None
 
@@ -58,24 +56,30 @@ class ActionOre(object):
         if self._executed:
             return False
 
-        if self._observer is None or self._observer.check():
+        if self._condition is None or self._condition.check():
             self._action()
             self._update()
             return True
         return False
 
     def _action(self):
-        print("Nothing to do")
+        print "Nothing to do"
 
     def to_dict(self):
         res = dict()
         res["method"] = self.type()
         return res
 
+    def with_sensor(self):
+        return None
 
-class Action(ActionOre):
+    def has_sensor(self, sensor_id):
+        return False
+
+
+class SensorSet(ActionOre):
     def __init__(self, value, sensor, point=None, delay=None, tmo=None):
-        super(Action, self).__init__()
+        super(SensorSet, self).__init__()
 
         self.value = value
         self.sensor_id = int(sensor)
@@ -85,17 +89,17 @@ class Action(ActionOre):
 
     def _action(self):
         if self.point_id is None:
-            print("Setting sensor id:{0} to value:{1}".format(self.sensor_id, self.value))
+            print "Setting sensor id:{0} to value:{1}".format(self.sensor_id, self.value)
         else:
-            print("Setting sensor id:{0}, point:{1} to value:{2}".format(self.sensor_id, self.point_id, self.value))
+            print "Setting sensor id:{0}, point:{1} to value:{2}".format(self.sensor_id, self.point_id, self.value)
 
     def __str__(self):
         if self.point_id is None:
             res = "set sensor id:{0} to value:{1}".format(self.sensor_id, self.value)
         else:
             res = "set sensor id:{0}, point:{1} to value:{2}".format(self.sensor_id, self.point_id, self.value)
-        if self._observer:
-            res += ", if ( {0} )".format(self._observer)
+        if self._condition:
+            res += ", if ( {0} )".format(self._condition)
         return res
 
     def __repr__(self):
@@ -114,6 +118,12 @@ class Action(ActionOre):
             res["tmo"] = self.tmo
         return res
 
+    def with_sensor(self):
+        return int(self.sensor_id)
+
+    def has_sensor(self, sensor_id):
+        return sensor_id == self.sensor_id
+
 
 class Notification(ActionOre):
     @staticmethod
@@ -125,10 +135,10 @@ class Notification(ActionOre):
         super(Notification, self).__init__()
 
     def _action(self):
-        print("Notification: Sensor_{0} {1} {2}".format(
+        print "Notification: Sensor_{0} {1} {2}".format(
                                                  self.trigger.sensor.sensor_id,
                                                  self.trigger.type(),
-                                                 self.trigger.target))
+                                                 self.trigger.target)
 
     def __str__(self):
         return "Notify"
@@ -153,7 +163,7 @@ class ActionGroup(ActionOre):
 
     def _action(self):
         if not self._list:
-            print("Need at least one action")
+            print "Need at least one action"
         for action in self._list:
             action.execute()
 
@@ -161,8 +171,8 @@ class ActionGroup(ActionOre):
         if not self._list:
             return "Nothing to do"
         res = "[ {0} ]".format(", and ".join([str(x) for x in self._list]))
-        if self._observer:
-            res += ", if ( {0} )".format(self._observer)
+        if self._condition:
+            res += ", if ( {0} )".format(self._condition)
         return res
 
     def to_dict(self):
@@ -171,7 +181,19 @@ class ActionGroup(ActionOre):
             res.append(item.to_dict())
         return res
 
+    def with_sensor(self):
+        res = []
+        for i in range(len((self._list))):
+            s = self._list[i].with_sensor()
+            if s:
+                res.append(int(s))
+        return res
+
+    def has_sensor(self, sensor_id):
+        return sensor_id in self.with_sensor()
+
+
 action_table = {
-    "default": Action,
+    "default": SensorSet,
     "notify": Notification
 }

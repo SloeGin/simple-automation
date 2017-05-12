@@ -1,7 +1,7 @@
-from stoa.actions import action_table, ActionGroup, ActionOre
-from stoa.observers import Gate, Observer, ObserverOre
-from stoa.triggers import trigger_table
-from stoa.sensors import Sensor, Clock
+from .actions import action_table, ActionGroup, ActionOre
+from .condition import Gate, Condition, ConditionOre
+from .triggers import trigger_table
+from .sensors import Sensor, Clock
 from copy import deepcopy
 
 
@@ -48,7 +48,7 @@ class LogicController(object):
                         new_sensor.update_point(point)
                 self._dict[sensor["id"]] = new_sensor
             except:
-                print("Wrong sensor format")
+                print "Wrong sensor format"
 
         return True
 
@@ -59,13 +59,31 @@ class LogicController(object):
             if sensor_id not in self._dict:
                 raise KeyError("Sensor ID not exists!")
             self._dict.pop(sensor_id)
+            self.remove_trigger_by_action_sensor(sensor_id)
         except Exception as e:
-            print(e)
+            print e
 
     def get_sensor(self, sensor_id):
         if int(sensor_id) not in self._dict:
             raise KeyError(int(sensor_id))
         return self._dict[int(sensor_id)]
+
+    def get_sensors(self):
+        return self._dict.iteritems()
+
+    def get_rules_from_sensor(self, sensor_id):
+        if not self._dict.has_key(sensor_id):
+            return None
+        return self._dict[int(sensor_id)].get_triggers()
+
+    def remove_trigger_by_action_sensor(self, sensor_id):
+        for key, value in self.get_sensors():
+            rule = self.get_rules_from_sensor(key)
+            if not rule:
+                continue
+            for index, item in enumerate(rule):
+                if item.get_action().has_sensor(sensor_id):
+                    print item.sensor.remove_trigger(index)
 
     def update_sensor(self, value, sensor_id, point_id=None):
         self._dict[sensor_id].update_value(value, point_id)
@@ -98,7 +116,7 @@ class LogicController(object):
 
     def add_action(self, actions):
         if self._cur_trigger is None:
-            print("No trigger on top")
+            print "No trigger on top"
 
         if actions is None:
             raise ValueError("No action in rule!")
@@ -152,16 +170,16 @@ class LogicController(object):
                     elif "state" in item:
                         self._add_lsm(item)
                     else:
-                        print("Invalidate Rule")
+                        print "Invalidate Rule"
             else:
                 if "sensor" in rule:
                     self._add_rule(rule)
                 elif "state" in rule:
                     self._add_lsm(rule)
                 else:
-                    print("Invalidate Rule")
+                    print "Invalidate Rule"
         except Exception as e:
-            print("Failed adding rule: {0}".format(e))
+            print "Failed adding rule: {0}".format(e)
 
     def _add_lsm(self, rule):
         pass
@@ -170,57 +188,57 @@ class LogicController(object):
         sensor = load_value(rule, "sensor")
         trigger = load_value(rule, "trigger")
         action = load_value(rule, "action")
-        observer = load_value(rule, "observer")
+        condition = load_value(rule, "condition")
         enabled = True if "enabled" not in rule else rule["enabled"]
         try:
             self.get_sensor(sensor)
             self.add_trigger(sensor, trigger)
             self.add_action(action)
-            self.add_observer(observer)
+            self.add_condition(condition)
             if enabled:
                 self._cur_trigger.enable()
             else:
                 self._cur_trigger.disable()
         except KeyError as e:
-            print("Failed adding rule: Sensor {0} not exists!".format(e))
+            print "Failed adding rule: Sensor {0} not exists!".format(e)
         except Exception as e:
-            print("Failed adding rule: {0}".format(e))
+            print "Failed adding rule: {0}".format(e)
         self.add_done()
 
-    def _load_ob(self, observer):
-        if observer is None:
+    def _load_ob(self, condition):
+        if condition is None:
             return None
-        if "method" in observer:
-            method = load_value(observer, "method")
-            threshold = load_value(observer, "threshold")
-            sensor = load_value(observer, "sensor")
-            point = load_value(observer, "point")
+        if "method" in condition:
+            method = load_value(condition, "method")
+            threshold = load_value(condition, "threshold")
+            sensor = load_value(condition, "sensor")
+            point = load_value(condition, "point")
 
-            return Observer(method, threshold, self.get_sensor(sensor), point)
-        elif "logic" in observer:
-            left = load_value(observer, "left")
-            logic = load_value(observer, "logic")
-            right = load_value(observer, "right")
+            return Condition(method, threshold, self.get_sensor(sensor), point)
+        elif "logic" in condition:
+            left = load_value(condition, "left")
+            logic = load_value(condition, "logic")
+            right = load_value(condition, "right")
 
             return Gate(self._load_ob(left), logic, self._load_ob(right))
         else:
             return None
 
-    def add_observer(self, observer):
-        if isinstance(observer, ObserverOre):
-            self._cur_action.add_observer(observer)
+    def add_condition(self, condition):
+        if isinstance(condition, ConditionOre):
+            self._cur_action.add_condition(condition)
             return
 
-        o = self._load_ob(observer)
+        o = self._load_ob(condition)
         if o:
-            self._cur_action.add_observer(o)
+            self._cur_action.add_condition(o)
 
-    def dump_rules(self):
-        for id in self._dict:
-            sensor = self.get_sensor(id)
+    def print_rules(self):
+        for sensorid in self._dict:
+            sensor = self.get_sensor(sensorid)
             if sensor.has_trigger():
-                print("sensor_{0}.json".format(sensor.sensor_id))
-                print(sensor.to_dict())
+                print "sensor_{0}.json".format(sensor.sensor_id)
+                print sensor.to_dict()
 
     def dump_rule(self, sensor_id):
         sensor = self.get_sensor(sensor_id)

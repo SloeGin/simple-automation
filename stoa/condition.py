@@ -1,11 +1,11 @@
 from datetime import datetime
-from stoa.sensors import Sensor
+from .sensors import Sensor
 
 
 #########################
 # Node object
 #########################
-class ObserverOre(object):
+class ConditionOre(object):
     _ID = 0
 
     def __init__(self):
@@ -23,7 +23,7 @@ class ObserverOre(object):
 
 
 #########################
-# Rules for observer
+# Rules for condition
 #########################
 TIME_FUZZ = 0
 
@@ -84,7 +84,7 @@ def time_after(value, threshold):
         return False
 
 
-Condition = {
+Condition_table = {
     "=g=": lambda x, y: x > y,
     "=l=": lambda x, y: x < y,
     "=e=": lambda x, y: x == y,
@@ -100,11 +100,11 @@ Condition = {
 }
 
 
-class Observer(ObserverOre):
+class Condition(ConditionOre):
     def __init__(self, rule, threshold, sensor, point=None):
         if not isinstance(sensor, Sensor):
             raise ValueError("Must have a valid sensor as input")
-        super(Observer, self).__init__()
+        super(Condition, self).__init__()
         self.rule = rule
         self.threshold = int(threshold) if threshold else None
         self.sensor = sensor
@@ -112,7 +112,7 @@ class Observer(ObserverOre):
 
     def __call__(self):
         value = self.get_sensor()
-        return Condition[self.rule](value, self.threshold)
+        return Condition_table[self.rule](value, self.threshold)
 
     def get_sensor(self):
         if self.point is None:
@@ -148,7 +148,7 @@ Logic_table = {
 }
 
 
-class Gate(ObserverOre):
+class Gate(ConditionOre):
     def __init__(self, left, logic, right):
         super(Gate, self).__init__()
         self.left = left

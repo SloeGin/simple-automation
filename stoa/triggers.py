@@ -1,4 +1,4 @@
-from stoa.sensors import Sensor
+from .sensors import Sensor
 from datetime import datetime
 
 

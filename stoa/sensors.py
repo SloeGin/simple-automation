@@ -1,4 +1,4 @@
-from stoa.constants import sensorDef
+from .constants import sensorDef
 import time
 
 
@@ -9,7 +9,7 @@ class Sensor(object):
         self._points = dict()
         self._enabled = True
         self.type = int(sensor_type)
-        self.name = name
+        self.name = name if name else "Sensor_%s"%sensor_id
         self.value = None
         if sensor_id in self._ID_list:
             raise ValueError("Sensor ID exists!")
@@ -34,6 +34,7 @@ class Sensor(object):
         self._points[point["point_id"]] = point
 
     def update_value(self, value, point=None):
+        """This function is the only function to update new sensor value"""
         init = False
         if point is None:
             if self.value is None:
@@ -90,11 +91,17 @@ class Sensor(object):
             return False
 
     def get_trigger(self, index):
+        if not self.has_trigger():
+            return None
         try:
             return self._triggers[index]
         except:
-            print("Index out of range")
+            print "Index out of range"
             return None
+
+    def get_triggers(self):
+        if self.has_trigger():
+            return self._triggers
 
     def remove_trigger(self, index):
         try:
@@ -103,7 +110,7 @@ class Sensor(object):
             else:
                 self._triggers.pop(index)
         except Exception as e:
-            print("{0}".format(e))
+            print "{0}".format(e)
 
     def __str__(self):
         res = "Sensor: id = {id}\n\tname = {name}\n\tvalue = {value}".format(
@@ -132,7 +139,7 @@ class Sensor(object):
             rule["enabled"] = trigger.enabled
             rule["trigger"] = trigger.to_dict()
             rule["action"] = trigger.action.to_dict()
-            rule["observer"] = trigger.action.observer_dict()
+            rule["condition"] = trigger.action.condition_dict()
             res.append(rule)
         return res if res else None
 

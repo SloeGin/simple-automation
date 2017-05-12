@@ -6,7 +6,7 @@ from stoa.controller import LogicController
 if __name__ == "__main__":
     control = LogicController()
 
-    s1 = Sensor(1, sensorDef.SENSOR_BINARY_SENSOR, "door")
+    s1 = Sensor(1, sensorDef.SENSOR_BINARY_SENSOR)
     s2 = Sensor(2, sensorDef.SENSOR_BINARY_SWITCH, "lamp 1")
     s3 = Sensor(3, sensorDef.SENSOR_MOTION, "motion")
     s4 = Sensor(4, sensorDef.SENSOR_MULTILEVEL_SWITCH, "lamp 2")
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         "sensor": 1,
         "trigger": {"method": "match", "target": 1},
         "action": {"method": "default", "value": 1, "sensor": 2},
-        "observer": {
+        "condition": {
             "left": {"method": "=wd=", "threshold": None, "sensor": 0},
             "logic": "and",
             "right": {"method": "=g=", "threshold": 20, "sensor": 5}
@@ -84,7 +84,26 @@ if __name__ == "__main__":
             {"method": "default", "value": 50, "sensor": 6},
             {"method": "notify"}
         ],
-        "observer": {"method": "=wd=", "threshold": None, "sensor": 0}
+        "condition": {"method": "=wd=", "threshold": None, "sensor": 0}
+    }
+    control.add_rule(rule_data)
+
+    rule_data = {
+        "sensor": 11,
+        "trigger": {"method": "match", "target": 1},
+        "action": [
+            {"method": "default", "value": 50, "sensor": 4},
+            {"method": "default", "value": 50, "sensor": 6},
+            {"method": "notify"}
+        ],
+        "condition": {"method": "=wd=", "threshold": None, "sensor": 0}
+    }
+    control.add_rule(rule_data)
+
+    rule_data = {
+        "sensor": 11,
+        "trigger": {"method": "match", "target": 1},
+        "action": {"method": "default", "value": 255, "sensor": 2}
     }
     control.add_rule(rule_data)
 
@@ -95,7 +114,7 @@ if __name__ == "__main__":
             {"method": "default", "value": 1, "sensor": 7},
             {"method": "default", "value": 20, "sensor": 7,  "point": 3}
         ],
-        "observer": {
+        "condition": {
             "left": {"method": "=wd=", "threshold": None, "sensor": "0"},
             "logic": "and",
             "right": {
@@ -129,23 +148,37 @@ if __name__ == "__main__":
     s1.update_value(0)
     s3.update_value(1)
     s5.update_value(28)
-    s1.update_value(1)
+    control.get_sensor(1).update_value(1)
 
-    control.remove_rule(3, 0)
+    # control.remove_rule(3, 0)
 
-    print(control)
-    control.dump_rules()
+    # print(control)
+    # control.print_rules()
+    #
+    # rule_data = control.dump_rule(1)
+    #
+    # control.remove_rule(1, 0)
+    # control.remove_rule(1, 0)
+    #
+    # control.add_rule(rule_data)
+    # control.remove_sensor(2)
+    #
+    # control.enable_rule(1, 0)
+    # control.disable_rule(1, 1)
+    # print(control)
+    # control.print_rules()
 
-    rule_data = control.dump_rule(1)
+    print "-------------------------------"
 
-    control.remove_rule(1, 0)
-    control.remove_rule(1, 0)
+    # for key, value in control.get_sensors():
+    #     rule = control.get_rules_from_sensor(key)
+    #     if not rule:
+    #         continue
+    #     for key, item in enumerate(rule):
+    #         if item.get_action().has_sensor(6):
+    #             print item.sensor.remove_trigger(key)
 
-    control.add_rule(rule_data)
-    control.remove_sensor(8)
+    control.remove_sensor(6)
 
-    control.enable_rule(1, 0)
-    control.disable_rule(1, 1)
-    print(control)
-
-    print(control.dump_rules())
+    print control
+    control.print_rules()
