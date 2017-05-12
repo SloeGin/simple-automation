@@ -8,15 +8,15 @@ from copy import deepcopy
 # TODO: Need a state controller for case "if Door A or Door B opens, turn light on otherwise turn in off".
 class LogicController(object):
     def __init__(self):
-        self._dict = dict()
-        self._dict[0] = Clock(0, 0, "clock")
+        self.sensor_dict = dict()
+        self.sensor_dict[0] = Clock(0, 0, "clock")
         self._cur_trigger = None
 
     def list(self):
-        return self._dict
+        return self.sensor_dict
 
     def __iter__(self):
-        return iter(self._dict)
+        return iter(self.sensor_dict)
 
     def __str__(self):
         res = "<Controller>\n"
@@ -28,20 +28,20 @@ class LogicController(object):
         if isinstance(sensor, Sensor):
             if sensor.sensor_id == 0:
                 raise ValueError("Fatal error: cannot overwrite system clock")
-            if sensor.sensor_id in self._dict:
+            if sensor.sensor_id in self.sensor_dict:
                 raise ValueError("Sensor ID exists!")
-            self._dict[sensor.sensor_id] = sensor
+            self.sensor_dict[sensor.sensor_id] = sensor
         else:
             try:
                 if sensor["id"] == 0:
                     raise ValueError("Fatal error: cannot overwrite system clock")
-                if sensor["id"] in self._dict:
+                if sensor["id"] in self.sensor_dict:
                     raise ValueError("Sensor ID exists!")
                 new_sensor = Sensor(sensor["id"], sensor["type"], sensor["name"])
                 if "points" in sensor:
                     for point in sensor["points"]:
                         new_sensor.update_point(point)
-                self._dict[sensor["id"]] = new_sensor
+                self.sensor_dict[sensor["id"]] = new_sensor
             except:
                 print "Wrong sensor format"
 
@@ -51,37 +51,31 @@ class LogicController(object):
         try:
             if sensor_id == 0:
                 raise ValueError("Fatal error: cannot overwrite system clock")
-            if sensor_id not in self._dict:
+            if sensor_id not in self.sensor_dict:
                 raise KeyError("Sensor ID not exists!")
-            self._dict.pop(sensor_id)
+            self.sensor_dict.pop(sensor_id)
             self.remove_trigger_by_action_sensor(sensor_id)
         except Exception as e:
             print e
 
     def get_sensor(self, sensor_id):
-        if int(sensor_id) not in self._dict:
+        if int(sensor_id) not in self.sensor_dict:
             raise KeyError(int(sensor_id))
-        return self._dict[int(sensor_id)]
-
-    def get_sensors(self):
-        return self._dict.iteritems()
+        return self.sensor_dict[int(sensor_id)]
 
     def get_rules_from_sensor(self, sensor_id):
-        if not self._dict.has_key(sensor_id):
+        if not self.sensor_dict.has_key(sensor_id):
             return None
-        return self._dict[int(sensor_id)].get_triggers()
+        return self.sensor_dict[int(sensor_id)].get_triggers()
 
     def remove_trigger_by_action_sensor(self, sensor_id):
-        for key, value in self.get_sensors():
-            rule = self.get_rules_from_sensor(key)
+        for sensor in self.sensor_dict:
+            rule = self.get_rules_from_sensor(sensor)
             if not rule:
                 continue
             for index, item in enumerate(rule):
                 if item.get_action().has_sensor(sensor_id):
                     item.sensor.remove_trigger(index)
-
-    def update_sensor(self, value, sensor_id, point_id=None):
-        self._dict[sensor_id].update_value(value, point_id)
 
     def add_trigger(self, sensor_id, trigger):
         # load trigger from json to controller
@@ -89,7 +83,7 @@ class LogicController(object):
             raise ValueError("Must provide sensor id!")
         if trigger is None:
             raise ValueError("No trigger in rule!")
-        sensor = self._dict[sensor_id]
+        sensor = self.sensor_dict[sensor_id]
         if not sensor.is_triggerable():
             raise ValueError("Sensor {0} is not triggerable!".format(sensor_id))
         t = trigger_table[trigger["method"]](trigger["target"])
@@ -98,15 +92,15 @@ class LogicController(object):
         return index
 
     def remove_rule(self, sensor_id, index):
-        sensor = self._dict[sensor_id]
+        sensor = self.sensor_dict[sensor_id]
         sensor.remove_trigger(index)
 
     def disable_rule(self, sensor_id, index):
-        sensor = self._dict[sensor_id]
+        sensor = self.sensor_dict[sensor_id]
         sensor.disable_trigger(index)
 
     def enable_rule(self, sensor_id, index):
-        sensor = self._dict[sensor_id]
+        sensor = self.sensor_dict[sensor_id]
         sensor.enable_trigger(index)
 
     def add_action(self, actions):
@@ -138,7 +132,7 @@ class LogicController(object):
             delay = action.get("delay")
             tmo = action.get("tmo")
 
-            if not self._dict[sensor].is_actable():
+            if not self.sensor_dict[sensor].is_actable():
                 raise ValueError("Sensor {0} is not actable!".format(sensor))
 
             return action_table["default"](value, sensor, point, delay, tmo)
@@ -224,8 +218,8 @@ class LogicController(object):
             self._cur_trigger.add_condition(o)
 
     def print_rules(self):
-        for sensorid in self._dict:
-            sensor = self.get_sensor(sensorid)
+        for sensor_id in self.sensor_dict:
+            sensor = self.get_sensor(sensor_id)
             if sensor.has_trigger():
                 print "sensor_{0}.json".format(sensor.sensor_id)
                 print sensor.to_dict()
@@ -235,5 +229,5 @@ class LogicController(object):
         return sensor.to_dict()
 
     def handle_data(self, sensor_id, value, point=None):
-        sensor = self._dict[sensor_id]
+        sensor = self.sensor_dict[sensor_id]
         sensor.update_value(value, point)

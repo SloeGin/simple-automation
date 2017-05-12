@@ -124,17 +124,18 @@ class Sensor(object):
                 t=str(value["point_type"]),
                 v=str(value["point_value"])
             )
-        for i in range(len(self._triggers)):
+        for index, trigger in enumerate(self._triggers):
             res += "\n\ttrigger: {i} - {t}".format(
-                i=i,
-                t=str(self._triggers[i])
+                i=index,
+                t=str(trigger)
             )
         return res + "\n"
 
     def to_dict(self):
         res = list()
-        for trigger in self._triggers:
+        for index, trigger in enumerate(self._triggers):
             rule = dict()
+            rule["index"] = index
             rule["sensor"] = trigger.sensor.sensor_id
             rule["enabled"] = trigger.enabled
             rule["trigger"] = trigger.to_dict()

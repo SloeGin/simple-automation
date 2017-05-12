@@ -3,7 +3,7 @@ from stoa.constants import sensorDef
 from stoa.controller import LogicController
 
 
-if __name__ == "__main__":
+def demo1():
     control = LogicController()
 
     s1 = Sensor(1, sensorDef.SENSOR_BINARY_SENSOR)
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     # control.remove_rule(3, 0)
 
     # print(control)
-    # control.print_rules()
+    control.print_rules()
     #
     # rule_data = control.dump_rule(1)
     #
@@ -170,15 +170,38 @@ if __name__ == "__main__":
 
     print "-------------------------------"
 
-    # for key, value in control.get_sensors():
-    #     rule = control.get_rules_from_sensor(key)
-    #     if not rule:
-    #         continue
-    #     for key, item in enumerate(rule):
-    #         if item.get_action().has_sensor(6):
-    #             print item.sensor.remove_trigger(key)
-
-    # control.remove_sensor(6)
+    control.remove_sensor(6)
 
     print control
     control.print_rules()
+
+
+def demo2():
+    control = LogicController()
+
+    s1 = Sensor(1, sensorDef.SENSOR_TEMPERATURE, "temperature")
+    s2 = Sensor(2, sensorDef.SENSOR_BINARY_SWITCH, "heater")
+
+    control.add_sensor(s1)
+    control.add_sensor(s2)
+
+    rule_data = {
+        "sensor": 1,
+        "enabled": False,
+        "trigger": {"method": "fall", "target":19},
+        "action": {"method": "default", "value": 255, "sensor": 2},
+        "v.v.": True
+    }
+    control.add_rule(rule_data)
+
+    print control
+
+    control.enable_rule(1, 0)
+    s1.update_value(20)
+    s1.update_value(19)
+    control.handle_data(sensor_id=1, value=18)
+    control.handle_data(sensor_id=1, value=17)
+
+
+if __name__ == "__main__":
+    demo1()
