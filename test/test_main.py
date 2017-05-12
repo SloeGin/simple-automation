@@ -178,7 +178,7 @@ if __name__ == "__main__":
     #         if item.get_action().has_sensor(6):
     #             print item.sensor.remove_trigger(key)
 
-    control.remove_sensor(6)
+    # control.remove_sensor(6)
 
     print control
     control.print_rules()

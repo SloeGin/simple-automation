@@ -1,4 +1,4 @@
-from .sensors import Sensor
+from.condition import ConditionOre
 from datetime import datetime
 
 
@@ -13,6 +13,7 @@ class Trigger(object):
         self.value = None
         self.point = point
         self.action = None
+        self.condition = None
         self.sensor = None
         self.enabled = True
 
@@ -44,17 +45,29 @@ class Trigger(object):
             self.update()
 
         if self.enabled and self.logic():
-            self.action.execute()
+            if self.condition is None or self.condition():
+                self.action.execute()
 
         self.update()
 
         return True
 
-    def assign(self, action):
+    def assign_action(self, action):
         self.action = action
 
     def get_action(self):
         return self.action
+
+    def add_condition(self, condition):
+        if not isinstance(condition, ConditionOre):
+            raise ValueError("Need to an condition or a logic gate")
+        self.condition = condition
+
+    def condition_dict(self):
+        if self.condition:
+            return self.condition.to_dict()
+        else:
+            return None
 
     def is_validated(self):
         if not self.sensor.is_triggerable():
@@ -73,7 +86,10 @@ class Trigger(object):
         return self.value == self.target and self.prev != self.target
 
     def __str__(self):
-        return "When sensor {0} matches {1}, {2}".format(self.sensor.sensor_id, self.target, self.action)
+        res = "When sensor {0} matches {1}, {2}".format(self.sensor.sensor_id, self.target, self.action)
+        if self.condition:
+            res += ", if ( {0} )".format(self.condition)
+        return res
 
 
 class RisingEdge(Trigger):

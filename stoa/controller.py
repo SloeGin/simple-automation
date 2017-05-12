@@ -5,16 +5,11 @@ from .sensors import Sensor, Clock
 from copy import deepcopy
 
 
-def load_value(x, y):
-    return x[y] if y in x else None
-
-
 # TODO: Need a state controller for case "if Door A or Door B opens, turn light on otherwise turn in off".
 class LogicController(object):
     def __init__(self):
         self._dict = dict()
         self._dict[0] = Clock(0, 0, "clock")
-        self._cur_action = None
         self._cur_trigger = None
 
     def list(self):
@@ -83,7 +78,7 @@ class LogicController(object):
                 continue
             for index, item in enumerate(rule):
                 if item.get_action().has_sensor(sensor_id):
-                    print item.sensor.remove_trigger(index)
+                    item.sensor.remove_trigger(index)
 
     def update_sensor(self, value, sensor_id, point_id=None):
         self._dict[sensor_id].update_value(value, point_id)
@@ -122,8 +117,7 @@ class LogicController(object):
             raise ValueError("No action in rule!")
 
         if isinstance(actions, ActionOre):
-            self._cur_trigger(actions)
-            self._cur_action = self._cur_trigger.get_action()
+            self._cur_trigger.assign_action(actions)
             return
 
         if isinstance(actions, list):
@@ -133,17 +127,16 @@ class LogicController(object):
         else:
             action = self._load_action(actions)
 
-        self._cur_trigger.assign(deepcopy(action))
-        self._cur_action = self._cur_trigger.get_action()
+        self._cur_trigger.assign_action(deepcopy(action))
 
     def _load_action(self, action):
         # add action from json to the current trigger
         if action["method"] == "default":
-            value = load_value(action, "value")
-            sensor = load_value(action, "sensor")
-            point = load_value(action, "point")
-            delay = load_value(action, "delay")
-            tmo = load_value(action, "tmo")
+            value = action.get("value")
+            sensor = action.get("sensor")
+            point = action.get("point")
+            delay = action.get("delay")
+            tmo = action.get("tmo")
 
             if not self._dict[sensor].is_actable():
                 raise ValueError("Sensor {0} is not actable!".format(sensor))
@@ -159,7 +152,6 @@ class LogicController(object):
         if self._cur_trigger and not self._cur_trigger.is_validated():
             self._cur_trigger.sensor.remove_trigger(None)
         self._cur_trigger = None
-        self._cur_action = None
 
     def add_rule(self, rule):
         try:
@@ -185,10 +177,10 @@ class LogicController(object):
         pass
 
     def _add_rule(self, rule):
-        sensor = load_value(rule, "sensor")
-        trigger = load_value(rule, "trigger")
-        action = load_value(rule, "action")
-        condition = load_value(rule, "condition")
+        sensor = rule.get("sensor")
+        trigger = rule.get("trigger")
+        action = rule.get("action")
+        condition = rule.get("condition")
         enabled = True if "enabled" not in rule else rule["enabled"]
         try:
             self.get_sensor(sensor)
@@ -209,29 +201,27 @@ class LogicController(object):
         if condition is None:
             return None
         if "method" in condition:
-            method = load_value(condition, "method")
-            threshold = load_value(condition, "threshold")
-            sensor = load_value(condition, "sensor")
-            point = load_value(condition, "point")
-
+            method = condition.get("method")
+            threshold = condition.get("threshold")
+            sensor = condition.get("sensor")
+            point = condition.get("point")
             return Condition(method, threshold, self.get_sensor(sensor), point)
         elif "logic" in condition:
-            left = load_value(condition, "left")
-            logic = load_value(condition, "logic")
-            right = load_value(condition, "right")
-
+            left = condition.get("left")
+            logic = condition.get("logic")
+            right = condition.get("right")
             return Gate(self._load_ob(left), logic, self._load_ob(right))
         else:
             return None
 
     def add_condition(self, condition):
         if isinstance(condition, ConditionOre):
-            self._cur_action.add_condition(condition)
+            self._cur_trigger.add_condition(condition)
             return
 
         o = self._load_ob(condition)
         if o:
-            self._cur_action.add_condition(o)
+            self._cur_trigger.add_condition(o)
 
     def print_rules(self):
         for sensorid in self._dict:

@@ -16,7 +16,6 @@ class ActionOre(object):
         self._enabled = True
         self._last_execute_time = 0
         self._executed = False
-        self._condition = None
 
     def enable(self):
         self._enabled = True
@@ -37,17 +36,6 @@ class ActionOre(object):
         self._last_execute_time = time.time()
         self._executed = True
 
-    def add_condition(self, condition):
-        if not isinstance(condition, ConditionOre):
-            raise ValueError("Need to an condition or a logic gate")
-        self._condition = condition
-
-    def condition_dict(self):
-        if self._condition:
-            return self._condition.to_dict()
-        else:
-            return None
-
     def execute(self):
         self._refresh()
         if not self._enabled:
@@ -56,11 +44,9 @@ class ActionOre(object):
         if self._executed:
             return False
 
-        if self._condition is None or self._condition.check():
-            self._action()
-            self._update()
-            return True
-        return False
+        self._action()
+        self._update()
+        return True
 
     def _action(self):
         print "Nothing to do"
@@ -98,8 +84,6 @@ class SensorSet(ActionOre):
             res = "set sensor id:{0} to value:{1}".format(self.sensor_id, self.value)
         else:
             res = "set sensor id:{0}, point:{1} to value:{2}".format(self.sensor_id, self.point_id, self.value)
-        if self._condition:
-            res += ", if ( {0} )".format(self._condition)
         return res
 
     def __repr__(self):
@@ -171,8 +155,6 @@ class ActionGroup(ActionOre):
         if not self._list:
             return "Nothing to do"
         res = "[ {0} ]".format(", and ".join([str(x) for x in self._list]))
-        if self._condition:
-            res += ", if ( {0} )".format(self._condition)
         return res
 
     def to_dict(self):

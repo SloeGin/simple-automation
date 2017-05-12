@@ -139,7 +139,8 @@ class Sensor(object):
             rule["enabled"] = trigger.enabled
             rule["trigger"] = trigger.to_dict()
             rule["action"] = trigger.action.to_dict()
-            rule["condition"] = trigger.action.condition_dict()
+            if trigger.condition is not None:
+                rule["condition"] = trigger.condition_dict()
             res.append(rule)
         return res if res else None
 
