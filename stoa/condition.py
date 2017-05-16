@@ -101,6 +101,13 @@ Condition_table = {
 
 
 class Condition(ConditionOre):
+    """
+    {
+      "method":Method,
+      "sensor":sensor_id,
+      "threshold":value
+    }
+    """
     def __init__(self, rule, threshold, sensor, point=None):
         if not isinstance(sensor, Sensor):
             raise ValueError("Must have a valid sensor as input")
@@ -149,6 +156,13 @@ Logic_table = {
 
 
 class Gate(ConditionOre):
+    """
+    {
+      "left":Gate|Condition,
+      "logic":"and",
+      "right":Gate|Condition
+    }
+    """
     def __init__(self, left, logic, right):
         super(Gate, self).__init__()
         self.left = left

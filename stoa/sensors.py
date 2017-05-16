@@ -3,6 +3,15 @@ import time
 
 
 class Sensor(object):
+    """
+    Trigger, condition and action makes a rule and applied to a sensor
+    a rule looks like
+    {
+      "trigger":Trigger,
+      "action":Action,
+      "condition":Condition,
+    }
+    """
     _ID_list = list()
 
     def __init__(self, sensor_id, sensor_type, name=None):

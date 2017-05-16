@@ -1,6 +1,7 @@
 from stoa.sensors import Sensor
 from stoa.constants import sensorDef
 from stoa.controller import LogicController
+from stoa.schedule import Schedule
 
 
 def demo1():
@@ -38,7 +39,7 @@ def demo1():
     rule_data = {
         "sensor": 1,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 1, "sensor": 2},
+        "action": {"method": "zwave_set", "value": 1, "sensor": 2},
         "condition": {
             "left": {"method": "=wd=", "threshold": None, "sensor": 0},
             "logic": "and",
@@ -51,7 +52,7 @@ def demo1():
         "sensor": 1,
         "enabled": False,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 4}
+        "action": {"method": "zwave_set", "value": 255, "sensor": 4}
     }
     control.add_rule(rule_data)
 
@@ -65,14 +66,14 @@ def demo1():
     rule_data = {
         "sensor": 8,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 1}
+        "action": {"method": "zwave_set", "value": 255, "sensor": 1}
     }
     control.add_rule(rule_data)
 
     rule_data = {
         "sensor": 9,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 2}
+        "action": {"method": "zwave_set", "value": 255, "sensor": 2}
     }
     control.add_rule(rule_data)
 
@@ -80,8 +81,8 @@ def demo1():
         "sensor": 3,
         "trigger": {"method": "match", "target": 1},
         "action": [
-            {"method": "default", "value": 50, "sensor": 4},
-            {"method": "default", "value": 50, "sensor": 6},
+            {"method": "zwave_set", "value": 50, "sensor": 4},
+            {"method": "zwave_set", "value": 50, "sensor": 6},
             {"method": "notify"}
         ],
         "condition": {"method": "=wd=", "threshold": None, "sensor": 0}
@@ -92,8 +93,8 @@ def demo1():
         "sensor": 11,
         "trigger": {"method": "match", "target": 1},
         "action": [
-            {"method": "default", "value": 50, "sensor": 4},
-            {"method": "default", "value": 50, "sensor": 6},
+            {"method": "zwave_set", "value": 50, "sensor": 4},
+            {"method": "zwave_set", "value": 50, "sensor": 6},
             {"method": "notify"}
         ],
         "condition": {"method": "=wd=", "threshold": None, "sensor": 0}
@@ -103,7 +104,7 @@ def demo1():
     rule_data = {
         "sensor": 11,
         "trigger": {"method": "match", "target": 1},
-        "action": {"method": "default", "value": 255, "sensor": 2}
+        "action": {"method": "zwave_set", "value": 255, "sensor": 2}
     }
     control.add_rule(rule_data)
 
@@ -111,8 +112,8 @@ def demo1():
         "sensor": 5,
         "trigger": {"method": "rise", "target": 26},
         "action": [
-            {"method": "default", "value": 1, "sensor": 7},
-            {"method": "default", "value": 20, "sensor": 7,  "point": 3}
+            {"method": "zwave_set", "value": 1, "sensor": 7},
+            {"method": "zwave_set", "value": 20, "sensor": 7,  "point": 3}
         ],
         "condition": {
             "left": {"method": "=wd=", "threshold": None, "sensor": "0"},
@@ -189,7 +190,7 @@ def demo2():
         "sensor": 1,
         "enabled": False,
         "trigger": {"method": "fall", "target":19},
-        "action": {"method": "default", "value": 255, "sensor": 2},
+        "action": {"method": "zwave_set", "value": 255, "sensor": 2},
         "v.v.": True
     }
     control.add_rule(rule_data)
@@ -203,5 +204,38 @@ def demo2():
     control.handle_data(sensor_id=1, value=17)
 
 
+def demo3():
+    sc = {
+        "action": {"method": "security_mode"},
+        "weekdays": [
+            {"enabled": True, "time": 1494961200, "value": 1}, # 3 pm
+            {"enabled": True, "time": 1494964800, "value": 0}  # 4 pm
+        ],
+        "weekends": [
+            {"enabled": True, "time": 1495058400, "value": 1}, # 6 pm
+            {"enabled": True, "time": 1495065600, "value": 0}  # 8 pm
+        ]
+    }
+
+    s = Schedule(sc)
+    print s
+
+    for i in range(1494961000, 1494961500, 25):
+        # wd 3pm
+        s.handle_data(i)
+    for i in range(1494964600, 1494965100, 25):
+        # wd 4pm
+        s.handle_data(i)
+    for i in range(1495047200, 1495047900, 25):
+        # wd 3pm another day
+        s.handle_data(i)
+    for i in range(1495915000, 1495915400, 25):
+        # we 4pm
+        s.handle_data(i)
+    for i in range(1495929200, 1495929800, 25):
+        # we 8pm
+        s.handle_data(i)
+
+
 if __name__ == "__main__":
-    demo1()
+    demo3()

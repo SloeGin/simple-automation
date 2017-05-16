@@ -10,6 +10,7 @@ class LogicController(object):
     def __init__(self):
         self.sensor_dict = dict()
         self.sensor_dict[0] = Clock(0, 0, "clock")
+        self.schedule_list = []
         self._cur_trigger = None
 
     def list(self):
@@ -125,21 +126,14 @@ class LogicController(object):
 
     def _load_action(self, action):
         # add action from json to the current trigger
-        if action["method"] == "default":
-            value = action.get("value")
+        if action["method"] == "zwave_set":
             sensor = action.get("sensor")
-            point = action.get("point")
-            delay = action.get("delay")
-            tmo = action.get("tmo")
-
             if not self.sensor_dict[sensor].is_actable():
                 raise ValueError("Sensor {0} is not actable!".format(sensor))
-
-            return action_table["default"](value, sensor, point, delay, tmo)
+            return action_table["zwave_set"](action)
 
         if action["method"] == "notify":
             trigger = self._cur_trigger
-
             return action_table["notify"](trigger)
 
     def add_done(self):

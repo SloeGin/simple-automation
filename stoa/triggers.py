@@ -3,6 +3,13 @@ from datetime import datetime
 
 
 class Trigger(object):
+    """
+    {
+      "method":"match",
+      "target":1,
+      "enabled":true,
+    }
+    """
     @staticmethod
     def type():
         return "match"
@@ -151,6 +158,7 @@ class Changed(Trigger):
 
     def __str__(self):
         return "When sensor {0} changes, {1}".format(self.sensor.sensor_id, self.action)
+
 
 trigger_table = {
     "match": Trigger,
