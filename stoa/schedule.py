@@ -57,22 +57,24 @@ class Schedule(object):
         if not action_method:
             raise ValueError("Method in action must be defined")
 
-        self.action = action_table[action_method](action)
+        self.action = action_table[action_method](**action)
         self.schedule = dict()
         self.last_trigger_time = 0
 
-        if WEEKDAYS in data:
+        if {WEEKDAYS, WEEKENDS} & set(data):
             # This is a 5-2 schedule
             self.type = 2
             self.load_schedule(WEEKDAYS, data)
             self.load_schedule(WEEKENDS, data)
-        elif "Mon" in data:
+        elif set(DAYS_OF_WEEK) & set(data):
             self.type = 7
             for days in DAYS_OF_WEEK:
                 self.load_schedule(days, data)
 
     def load_schedule(self, key_of_interest, data):
         schedule = data.get(key_of_interest)
+        if not schedule:
+            return None
         schedule_trigger = dict()
         for item in schedule:
             timestamp = back_to_that_day(item.get("time"))
@@ -90,6 +92,8 @@ class Schedule(object):
 
     def check_schedule(self, dow, time_now):
         schedule_table = self.schedule.get(dow)
+        if not schedule_table:
+            return False
         if self.last_trigger_time == time_now:
             return False
         time_that_day = back_to_that_day(time_now)

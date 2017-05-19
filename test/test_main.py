@@ -205,6 +205,21 @@ def demo2():
 
 
 def demo3():
+    """
+    {
+        "action": {"method": "security_mode"},
+        "weekdays": [
+            {"enabled": True, "time": 1495051200, "value": 1},
+            {"enabled": True, "time": 1495051260, "value": 0},
+            {"enabled": True, "time": 1495051320, "value": 1},
+            {"enabled": True, "time": 1495051380, "value": 0},
+        ],
+        "weekends": [
+            {"enabled": True, "time": 1495058400, "value": 1},
+            {"enabled": True, "time": 1495065600, "value": 0}
+        ]
+    }
+    """
     sc = {
         "action": {"method": "security_mode"},
         "weekdays": [
@@ -217,25 +232,39 @@ def demo3():
         ]
     }
 
+    sc = {
+        "action": {"method": "zwave_set", "sensor":1},
+        "Fri": [
+            {"enabled": True, "time": 1494961200, "value": 1}, # 3 pm
+            {"enabled": True, "time": 1494964800, "value": 0}  # 4 pm
+        ],
+        "Sun": [
+            {"enabled": True, "time": 1495058400, "value": 1}, # 6 pm
+            {"enabled": True, "time": 1495065600, "value": 0}  # 8 pm
+        ]
+    }
+
     s = Schedule(sc)
     print s
 
     for i in range(1494961000, 1494961500, 25):
-        # wd 3pm
+        # wd 3pm Tue
         s.handle_data(i)
     for i in range(1494964600, 1494965100, 25):
-        # wd 4pm
+        # wd 4pm Tue
         s.handle_data(i)
     for i in range(1495047200, 1495047900, 25):
-        # wd 3pm another day
+        # wd 3pm Wed
         s.handle_data(i)
     for i in range(1495915000, 1495915400, 25):
-        # we 4pm
+        # we 4pm Sat
         s.handle_data(i)
     for i in range(1495929200, 1495929800, 25):
-        # we 8pm
+        # we 8pm Sat
         s.handle_data(i)
 
 
 if __name__ == "__main__":
     demo3()
+
+

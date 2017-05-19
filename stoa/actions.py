@@ -80,7 +80,7 @@ class SensorSet(ActionOre):
         # TODO: delay and tmo is not in used
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, **data):
         if data["method"] == cls.type():
             value = data.get("value")
             sensor = data.get("sensor")
@@ -144,9 +144,9 @@ class SecurityMode(ActionOre):
     def type():
         return "security_mode"
 
-    def __init__(self, value=None):
+    def __init__(self, **kwargs):
         super(SecurityMode, self).__init__()
-        self.value = value
+        self.value = kwargs.get("value")
 
     def _action(self):
         if self.value is None:
